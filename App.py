@@ -2,7 +2,7 @@
 import streamlit as st
 from utils import safe_str, clean_json, apply_filters, load_dataframe
 from llm import generate_spec_cached, OpenAIClient
-from layout import smart_layout_v3, safe_sections
+from layout import smart_layout_v3
 from renderer import build_dashboard_html, render_preview, make_explainability_table
 
 import os, json, time
