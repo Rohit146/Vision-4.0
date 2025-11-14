@@ -1,7 +1,10 @@
+
 streamlit
 pandas
 plotly
-openai>=1.12.0
-python-dotenv
 jinja2
+openai>=1.12.0
 openpyxl
+python-dotenv
+kaleido
+numpy
