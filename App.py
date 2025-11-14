@@ -1,9 +1,9 @@
 
 import streamlit as st
-from src.utils import safe_str, clean_json, apply_filters, load_dataframe
-from src.llm import generate_spec_cached, OpenAIClient
-from src.layout import smart_layout_v3, auto_layout_optimize, safe_sections
-from src.renderer import build_dashboard_html, render_preview, make_explainability_table
+from utils import safe_str, clean_json, apply_filters, load_dataframe
+from llm import generate_spec_cached, OpenAIClient
+from layout import smart_layout_v3, auto_layout_optimize, safe_sections
+from renderer import build_dashboard_html, render_preview, make_explainability_table
 
 import os, json, time
 
