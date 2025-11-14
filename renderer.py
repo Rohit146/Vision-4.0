@@ -1,7 +1,7 @@
 
 import plotly.express as px, pandas as pd
 from jinja2 import Template
-from src.utils import safe_str
+from utils import safe_str
 
 def make_plot_html(df, x, y, ctype, theme='light'):
     # simple wrapper to create plotly inline HTML (keeps app independent)
