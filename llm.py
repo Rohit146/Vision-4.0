@@ -34,4 +34,4 @@ Columns: [{col_list}]
 Return JSON only with keys: title, theme, filters, kpis, sections."""
 
 # small helper to reuse clean_json from utils without circular import
-from src.utils import clean_json
+from utils import clean_json
