@@ -1,7 +1,7 @@
 
 import pandas as pd, numpy as np, math, hashlib, json
 from collections import defaultdict
-from src.utils import safe_str
+from utils import safe_str
 
 # Reuse insight metrics and functions (condensed)
 def _pearson_corr(df, x, y):
