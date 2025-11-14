@@ -4,3 +4,4 @@ plotly
 openai>=1.12.0
 python-dotenv
 jinja2
+openpyxl
