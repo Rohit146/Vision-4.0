@@ -34,3 +34,17 @@ def apply_filters(df, filters):
         if k in out.columns and v:
             out = out[out[k].astype(str).isin(v)]
     return out
+
+def demo_dataframe():
+    import pandas as pd, numpy as np
+    n = 300
+    rng = pd.date_range('2024-01-01', periods=n, freq='D')
+    df = pd.DataFrame({
+        'order_date': rng,
+        'region': np.random.choice(['North','South','East','West'], size=n),
+        'product': np.random.choice(['Widget A','Widget B','Widget C'], size=n),
+        'revenue': (np.random.rand(n) * 10000).round(2),
+        'cost': (np.random.rand(n) * 7000).round(2)
+    })
+    df['profit'] = df['revenue'] - df['cost']
+    return df
