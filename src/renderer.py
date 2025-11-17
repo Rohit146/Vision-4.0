@@ -1,15 +1,16 @@
 
 import plotly.express as px, pandas as pd
 from jinja2 import Template
-from utils import safe_str
+from src.utils import safe_str
 
 def make_plot_html(df, x, y, ctype, theme='light'):
-    # simple wrapper to create plotly inline HTML (keeps app independent)
     try:
         if ctype == 'table':
             cols = y if isinstance(y, list) else [c for c in [x,y] if c in df.columns]
             return df[cols].head(40).to_html(index=False)
         if ctype in ('bar','line','area'):
+            if x not in df.columns or y not in df.columns:
+                return '<div style="color:#999">Invalid fields</div>'
             agg = df.groupby(x)[y].sum(numeric_only=True).reset_index()
         else:
             agg = df
@@ -46,7 +47,8 @@ def build_dashboard_html(spec, df):
     sections_html = ''
     for sec in sections:
         sec_name = safe_str(sec.get('name','Section')); viz_block = ''
-        for ch in sec.get('charts', []):
+        charts = sec.get('charts') if isinstance(sec.get('charts'), list) else []
+        for ch in charts:
             ctype = ch.get('type','bar'); x = ch.get('x'); y = ch.get('y')
             html_piece = make_plot_html(df, x or '', y or '', ctype, theme=spec.get('theme','light'))
             narrative = sec.get('narrative','') or ''
@@ -63,7 +65,8 @@ def render_preview(html, height=800):
 def make_explainability_table(spec, df):
     rows = []
     for sec in spec.get('sections', []):
-        for ch in sec.get('charts', []):
+        charts = sec.get('charts') if isinstance(sec.get('charts'), list) else []
+        for ch in charts:
             x = ch.get('x'); y = ch.get('y'); ctype = ch.get('type', 'bar')
             rows.append({'section': sec.get('name'), 'x': x, 'y': y, 'type': ctype})
     return pd.DataFrame(rows)
