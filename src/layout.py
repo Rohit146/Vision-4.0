@@ -1,9 +1,22 @@
 
-import pandas as pd, numpy as np, math, hashlib, json
+import pandas as pd, numpy as np, math
 from collections import defaultdict
-from utils import safe_str
 
-# Reuse insight metrics and functions (condensed)
+def safe_sections(raw_sections):
+    out = []
+    if not raw_sections:
+        return out
+    for s in raw_sections:
+        if isinstance(s, str):
+            out.append({'name': s, 'charts': []})
+        elif isinstance(s, dict):
+            name = s.get('name') or 'Unnamed Section'
+            charts = s.get('charts') if isinstance(s.get('charts'), list) else []
+            out.append({'name': name, 'charts': charts})
+        else:
+            continue
+    return out
+
 def _pearson_corr(df, x, y):
     try:
         if x not in df.columns or y not in df.columns: return 0.0
@@ -81,7 +94,8 @@ def smart_layout_v3(spec, df, client=None, add_anomaly_charts=True):
     if not spec or 'sections' not in spec: return spec
     collected = []
     for sec in spec.get('sections', []):
-        for ch in sec.get('charts', []):
+        charts = sec.get('charts') if isinstance(sec.get('charts'), list) else []
+        for ch in charts:
             x = ch.get('x'); y = ch.get('y'); cols = ch.get('columns') if isinstance(ch.get('columns'), list) else None
             metrics = _compute_insight_metrics(df, x, y if isinstance(y,str) else (y[0] if isinstance(y,list) and y else None))
             reco = ch.get('type') or _recommend_visual(df, x, y)
@@ -135,19 +149,41 @@ def smart_layout_v3(spec, df, client=None, add_anomaly_charts=True):
         if s['name'].lower().startswith('deep'): deep_idx=i; break
     if deep_idx is not None and deep_idx != len(final_sections)-1:
         dd = final_sections.pop(deep_idx); final_sections.append(dd)
-    if client is not None:
-        for s in final_sections:
-            sumry={'charts':[]}
-            for ch in s.get('charts',[]): 
-                x=ch.get('x'); y=ch.get('y'); t=ch.get('type')
-                metrics=_compute_insight_metrics(df, x, y if isinstance(y,str) else (y[0] if isinstance(y,list) and y else None))
-                sumry['charts'].append({'title':f'{x} vs {y}','type':t,'score':metrics.get('score')})
-            # lightweight call - may fail silently
-            try:
-                prompt = f"Write a concise executive summary for {s.get('name')} using this summary: {sumry}"
-                r = client.chat(completion_messages=[{'role':'user','content':prompt}])
-                s['narrative'] = r.choices[0].message.content if hasattr(r,'choices') else ''
-            except:
-                s['narrative'] = ''
     spec['sections'] = final_sections
+    return spec
+
+def auto_layout_optimize(spec):
+    if not spec or 'sections' not in spec: return spec
+    order = ['Overview','Performance','Trends','Deep Dive','Risks & Notes']
+    sections = spec['sections']
+    try:
+        sections = sorted(sections, key=lambda s: order.index(s.get('name')) if s.get('name') in order else 999)
+    except Exception:
+        sections = spec['sections']
+    WEIGHTS = {'table':3,'bar':2,'line':2,'area':2,'scatter':2,'hist':1,'donut':1,None:2}
+    optimized = []
+    for sec in sections:
+        charts = sec.get('charts', []) if isinstance(sec.get('charts'), list) else []
+        if not charts: continue
+        weighted = []
+        for ch in charts:
+            ctype = str(ch.get('type','bar')).lower() if isinstance(ch.get('type'), str) else 'bar'
+            weight = WEIGHTS.get(ctype,2)
+            weighted.append((ch,weight))
+        rows=[]; cur=[]; curw=0
+        for ch,w in weighted:
+            if w==3:
+                if cur: rows.append(cur); cur=[]; curw=0
+                rows.append([ch]); continue
+            if curw + w <= 3:
+                cur.append(ch); curw += w
+            else:
+                rows.append(cur); cur=[ch]; curw = w
+        if cur: rows.append(cur)
+        new_order=[]
+        for row in rows:
+            for ch in row: new_order.append(ch)
+        sec['charts'] = new_order
+        optimized.append(sec)
+    spec['sections'] = optimized
     return spec
