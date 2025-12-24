@@ -1,3 +1,4 @@
+
 def normalize_dashboard(dashboard):
     dashboard.setdefault("layout", {})
     dashboard["layout"].update({

@@ -1,16 +1,11 @@
+
 import json, uuid, os
 from openai import OpenAI
+from utils_llm import sanitize_llm_output, parse_json_with_retry
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-SYSTEM_PROMPT = """
-You are a senior BI architect.
-Generate an enterprise dashboard JSON.
-Rules:
-- 16:9 (1920x1080)
-- 12-column grid
-- VALID JSON ONLY
-"""
+SYSTEM_PROMPT = "Return ONLY valid JSON. No markdown."
 
 def generate_dashboard(prompt):
     response = client.chat.completions.create(
@@ -20,6 +15,7 @@ def generate_dashboard(prompt):
             {"role": "user", "content": prompt}
         ]
     )
-    dashboard = json.loads(response.choices[0].message.content)
+    raw = sanitize_llm_output(response.choices[0].message.content)
+    dashboard = parse_json_with_retry(raw)
     dashboard.setdefault("meta", {})["dashboard_id"] = str(uuid.uuid4())
     return dashboard

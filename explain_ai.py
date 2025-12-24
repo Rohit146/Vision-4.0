@@ -1,3 +1,4 @@
+
 import json, os
 from openai import OpenAI
 
@@ -7,7 +8,7 @@ def explain_dashboard(dashboard):
     response = client.chat.completions.create(
         model="gpt-4.1",
         messages=[
-            {"role": "system", "content": "Explain this dashboard for business users."},
+            {"role": "system", "content": "Explain this dashboard in business language."},
             {"role": "user", "content": json.dumps(dashboard)}
         ]
     )
