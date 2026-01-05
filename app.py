@@ -2,9 +2,9 @@
 import streamlit as st
 import pandas as pd
 import json
-from backend.llm import get_dashboard_intent_with_repair
-from backend.profiler import profile_dataframe
-from backend.compiler import compile_dashboard
+from llm import get_dashboard_intent_with_repair
+from profiler import profile_dataframe
+from compiler import compile_dashboard
 
 st.set_page_config(layout="wide")
 st.title("AI Dashboard Generator (Streamlit + React Hybrid)")
